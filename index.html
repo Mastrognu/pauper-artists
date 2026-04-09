@@ -319,9 +319,13 @@ document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))sug.s
 
 function pick(name){inp.value=name;sug.style.display='none';render(name)}
 
+function searchArtist(name){setMode('artist');inp.value=name;pick(name)}
+
 function cardEl(name,p,i){
   const img=p.image?`<img src="${p.image}" alt="${name}" loading="lazy">`:`<div class="no-img">${name}</div>`;
-  const meta=mode==='artist'?p.set_name:`${p.artist} · ${p.set_name}`;
+  const meta=mode==='artist'
+    ?`<span>${p.set_name}</span>`
+    :`<button class="artist-link" onclick="event.preventDefault();event.stopPropagation();searchArtist(${JSON.stringify(p.artist)})">${p.artist}</button><span style="color:var(--text3)"> · ${p.set_name}</span>`;
   return `<a class="card" href="${p.uri||'#'}" target="_blank" rel="noopener" style="animation-delay:${Math.min(i*18,320)}ms">
     ${img}
     <div class="card-overlay">
