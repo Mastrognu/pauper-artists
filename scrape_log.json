@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-04-09T17:24:53",
+  "total_scraped": 538,
+  "already_known": 519,
+  "new_cards": [
+    "Cruel Edict",
+    "Dauthi Slayer",
+    "Dimension X",
+    "Distress",
+    "Ethereal Haze",
+    "Goblin War Strike",
+    "Hindering Touch",
+    "Liliana's Specter",
+    "Lorien Revealed",
+    "Lost Legion",
+    "Loyal Sentry",
+    "Primordial Pachyderm",
+    "Sarpadian Simulacrum",
+    "Somber Hoverguard",
+    "Three Tree Mascot",
+    "Troll of Khazad-dum",
+    "Victim of Night",
+    "Whisper Agent",
+    "Wrecking Ball"
+  ],
+  "total_after": 1141,
+  "dry_run": false
+}
