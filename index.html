@@ -4,203 +4,369 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pauper Artist Lookup</title>
+<link rel="icon" type="image/png" href="icon.png">
 <style>
-:root {
-  --bg:#12121f;--surface:#1c1c30;--card-bg:#252540;
-  --accent:#e05555;--gold:#c8a84b;
-  --text:#e8e8f0;--dim:#7878a0;--border:#2e2e50;
+:root{
+  --bg:#090912;--bg2:#0d0d18;
+  --surf:#111120;--surf2:#181828;--surf3:#1e1e32;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --accent:#d94f6e;--accent-glow:rgba(217,79,110,.15);
+  --gold:#c9a84c;--gold-glow:rgba(201,168,76,.15);
+  --text:#eeeef6;--text2:#8888aa;--text3:#3e3e58;
+  --r:12px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
-header{text-align:center;padding:28px 20px 16px}
-header h1{font-size:1.8rem;color:var(--gold);letter-spacing:.06em;margin-bottom:4px}
-header p{color:var(--dim);font-size:.82rem}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
 
-/* sticky top nav */
-.top-nav{
-  position:sticky;top:0;z-index:50;
-  display:flex;justify-content:center;align-items:center;gap:8px;
-  padding:10px 20px 10px;background:var(--bg);
-  border-bottom:1px solid var(--border);margin-bottom:24px;
+/* ── Header ── */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 24px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:40;
+  background:rgba(9,9,18,.8);backdrop-filter:blur(16px);
 }
-.top-nav button{
-  padding:6px 26px;border-radius:999px;border:1px solid var(--border);
-  background:transparent;color:var(--dim);cursor:pointer;font-size:.88rem;transition:all .15s
+.logo{display:flex;align-items:center;gap:9px;text-decoration:none}
+.logo-mark{
+  width:30px;height:30px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),#8b2fd4);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
-.top-nav button.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.top-nav a.admin-lnk{
-  position:absolute;right:16px;font-size:.72rem;
-  color:var(--dim);text-decoration:none;padding:4px
+.logo-mark img{width:22px;height:22px;object-fit:contain;filter:invert(1) brightness(1.2);}
+.logo-text{font-size:.8rem;font-weight:700;letter-spacing:.14em;color:var(--text);text-transform:uppercase}
+.header-right{display:flex;align-items:center;gap:8px}
+.btn-events{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 13px;background:var(--surf2);border:1px solid var(--border2);
+  border-radius:8px;color:var(--text2);font-size:.8rem;cursor:pointer;transition:all .15s;
 }
-.top-nav a.admin-lnk:hover{color:var(--text)}
+.btn-events:hover{background:var(--surf3);color:var(--text)}
+.ev-badge{
+  background:var(--accent);color:#fff;font-size:.62rem;font-weight:700;
+  padding:1px 6px;border-radius:99px;display:none;
+}
+.btn-admin{
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+  background:var(--surf2);border:1px solid var(--border);border-radius:8px;
+  color:var(--text3);font-size:.85rem;text-decoration:none;transition:all .15s;
+}
+.btn-admin:hover{color:var(--text2);border-color:var(--border2)}
 
-.section{display:none}.section.on{display:block}
+/* ── Hero ── */
+.hero{
+  display:flex;flex-direction:column;align-items:center;
+  padding:64px 20px 48px;
+}
+.hero h1{
+  font-size:2.6rem;font-weight:700;letter-spacing:-.025em;
+  text-align:center;margin-bottom:10px;
+  background:linear-gradient(160deg,var(--text) 50%,var(--text2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero p{color:var(--text3);font-size:.87rem;margin-bottom:36px;text-align:center}
 
 /* ── Search ── */
-.search-box{max-width:560px;margin:0 auto 28px;padding:0 16px}
-.mode-tabs{display:flex;justify-content:center;gap:8px;margin-bottom:12px}
-.mode-tabs button{
-  padding:5px 20px;border-radius:999px;border:1px solid var(--border);
-  background:transparent;color:var(--dim);cursor:pointer;font-size:.85rem;transition:all .15s
+.search-wrap{width:100%;max-width:600px;position:relative}
+.search-field{
+  display:flex;align-items:center;gap:10px;
+  background:var(--surf);border:1px solid var(--border2);
+  border-radius:14px;padding:5px 5px 5px 16px;
+  transition:border-color .2s,box-shadow .2s;
 }
-.mode-tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.wrap{position:relative}
+.search-field:focus-within{
+  border-color:rgba(217,79,110,.45);
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+.search-field svg{color:var(--text3);flex-shrink:0}
 #inp{
-  width:100%;padding:12px 16px;font-size:1rem;
-  background:var(--surface);border:1px solid var(--border);border-radius:8px;
-  color:var(--text);outline:none;transition:border-color .15s
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-size:.95rem;padding:9px 0;
 }
-#inp:focus{border-color:var(--accent)}
-#inp::placeholder{color:var(--dim)}
+#inp::placeholder{color:var(--text3)}
+.mode-pills{
+  display:flex;background:var(--surf2);border-radius:9px;padding:3px;gap:2px;flex-shrink:0;
+}
+.mode-pills button{
+  padding:6px 13px;border-radius:7px;border:none;
+  background:transparent;color:var(--text2);font-size:.76rem;font-weight:500;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.mode-pills button.on{background:var(--accent);color:#fff}
+
+/* ── Suggestions ── */
 #sug{
-  display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;
-  background:var(--surface);border:1px solid var(--border);border-radius:8px;
-  max-height:260px;overflow-y:auto;z-index:99
+  display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;
+  background:var(--surf);border:1px solid var(--border2);border-radius:12px;
+  overflow:hidden;z-index:99;box-shadow:0 20px 60px rgba(0,0,0,.6);
 }
 .sug-item{
-  padding:10px 16px;cursor:pointer;font-size:.88rem;
-  border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center
+  display:flex;justify-content:space-between;align-items:center;
+  padding:11px 16px;cursor:pointer;font-size:.88rem;
+  border-bottom:1px solid var(--border);transition:background .1s;
 }
 .sug-item:last-child{border-bottom:none}
-.sug-item:hover,.sug-item.hi{background:var(--card-bg)}
-.sug-item span{color:var(--dim);font-size:.78rem}
-
-#out{max-width:1200px;margin:0 auto;padding:0 16px 48px}
-.empty{text-align:center;color:var(--dim);padding:80px 20px;font-size:.95rem}
-.spinner{text-align:center;color:var(--dim);padding:60px;font-size:.9rem}
-.result-header{margin-bottom:20px}
-.result-header h2{font-size:1.5rem;color:var(--gold);margin-bottom:4px}
-.result-header p{color:var(--dim);font-size:.82rem}
-
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
-.card{
-  background:var(--surface);border:1px solid var(--border);border-radius:10px;
-  overflow:hidden;transition:transform .15s,border-color .15s;
-  text-decoration:none;color:inherit;display:block
+.sug-item:hover,.sug-item.hi{background:var(--surf2)}
+.sug-badge{
+  font-size:.72rem;color:var(--text3);
+  background:var(--surf2);padding:2px 9px;border-radius:99px;
 }
-@media(hover:hover){.card:hover{transform:translateY(-4px);border-color:var(--accent)}}
+.sug-item.hi .sug-badge{background:var(--surf3)}
+
+/* ── Results ── */
+#results{max-width:1300px;margin:0 auto;padding:0 20px 80px}
+.result-header{
+  display:flex;align-items:baseline;gap:14px;
+  margin-bottom:24px;padding-bottom:16px;
+  border-bottom:1px solid var(--border);
+}
+.result-header h2{font-size:1.6rem;font-weight:700;color:var(--gold)}
+.result-header span{font-size:.78rem;color:var(--text3)}
+.empty-state{text-align:center;padding:100px 20px;color:var(--text3)}
+.empty-state .icon{font-size:2.5rem;opacity:.2;margin-bottom:14px}
+
+/* ── Grid ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:14px}
+@media(max-width:600px){
+  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .hero{padding:36px 16px 28px}
+  .hero h1{font-size:1.7rem}
+  header{padding:12px 16px}
+}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.card{
+  position:relative;border-radius:10px;overflow:hidden;
+  text-decoration:none;color:inherit;display:block;
+  background:var(--surf);border:1px solid var(--border);
+  transition:transform .2s,border-color .2s,box-shadow .2s;
+  animation:up .3s ease both;
+}
+.card:hover{
+  transform:translateY(-6px) scale(1.015);
+  border-color:rgba(255,255,255,.18);
+  box-shadow:0 16px 48px rgba(0,0,0,.55);
+}
 .card img{width:100%;display:block}
 .card .no-img{
-  aspect-ratio:63/88;background:var(--card-bg);
+  aspect-ratio:63/88;background:var(--surf2);
   display:flex;align-items:center;justify-content:center;
-  color:var(--dim);font-size:.72rem;text-align:center;padding:8px
+  color:var(--text3);font-size:.72rem;text-align:center;padding:12px;
 }
-.card .info{padding:8px 10px}
-.card .cname{font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card .cmeta{font-size:.68rem;color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-overlay{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:32px 10px 10px;
+  background:linear-gradient(to top,rgba(4,4,14,.97) 0%,transparent 100%);
+}
+.card-name{font-size:.75rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.card-meta{font-size:.63rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* hover zoom */
-#zoom{
-  display:none;position:fixed;z-index:1000;pointer-events:none;
-  filter:drop-shadow(0 12px 40px rgba(0,0,0,.9));transition:opacity .1s
-}
-#zoom img{width:265px;border-radius:14px;display:block}
-@media(hover:none){#zoom{display:none!important}}
+/* ── Zoom ── */
+#zoom{display:none;position:fixed;z-index:1000;pointer-events:none;filter:drop-shadow(0 20px 60px rgba(0,0,0,.95))}
+#zoom img{width:280px;border-radius:16px;display:block}
 
-/* mobile grid */
-@media(max-width:600px){
-  header h1{font-size:1.3rem}
-  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
-  .result-header h2{font-size:1.1rem}
+/* ── Drawer ── */
+#drawer-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.55);z-index:60;backdrop-filter:blur(3px);
 }
-
-/* ── Events ── */
-#secEvents{max-width:760px;margin:0 auto;padding:0 16px 48px}
-.ev-header{margin-bottom:20px}
-.ev-header h2{font-size:1.4rem;color:var(--gold);margin-bottom:4px}
-.ev-header p{color:var(--dim);font-size:.82rem}
-.ev-group-label{
-  font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;
-  color:var(--dim);margin:20px 0 8px
+#drawer-overlay.on{display:block}
+#drawer{
+  position:fixed;top:0;right:0;bottom:0;width:380px;max-width:100vw;
+  background:var(--bg2);border-left:1px solid var(--border2);
+  z-index:61;display:flex;flex-direction:column;overflow:hidden;
+  transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
 }
-.ev-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:10px;
-  padding:14px 16px;margin-bottom:8px;
-  display:flex;justify-content:space-between;align-items:flex-start;gap:12px
+#drawer.on{transform:translateX(0)}
+.drawer-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 18px 14px;border-bottom:1px solid var(--border);flex-shrink:0;
 }
-.ev-card.past{opacity:.4}
-.ev-card h3{font-size:.92rem;margin-bottom:4px}
-.ev-card h3 button{
-  background:none;border:none;color:var(--accent);cursor:pointer;
-  font-size:.92rem;font-weight:700;padding:0;text-decoration:underline dotted
+.drawer-header h2{font-size:.95rem;font-weight:600}
+.drawer-close{
+  width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  background:var(--surf2);border:1px solid var(--border);border-radius:7px;
+  color:var(--text2);font-size:.8rem;cursor:pointer;transition:all .15s;
 }
-.ev-card p{font-size:.78rem;color:var(--dim);margin:2px 0}
-.ev-card a{color:var(--accent);font-size:.78rem}
+.drawer-close:hover{color:var(--text);border-color:var(--border2)}
+#drawer-content{flex:1;overflow-y:auto;padding:14px}
+.ev-group{font-size:.67rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:12px 0 8px 2px}
+.ev-item{
+  background:var(--surf);border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;margin-bottom:8px;transition:border-color .15s;
+}
+.ev-item:hover{border-color:var(--border2)}
+.ev-item.past{opacity:.35}
 .ev-date{
-  font-size:.75rem;color:var(--gold);white-space:nowrap;flex-shrink:0;
-  background:var(--card-bg);padding:4px 10px;border-radius:999px
+  display:inline-block;font-size:.67rem;font-weight:500;
+  color:var(--gold);background:var(--gold-glow);
+  border:1px solid rgba(201,168,76,.2);padding:2px 8px;
+  border-radius:99px;margin-bottom:6px;
 }
-.no-events{text-align:center;color:var(--dim);padding:60px 20px}
+.ev-artist{
+  font-size:.88rem;font-weight:600;color:var(--gold);
+  background:none;border:none;padding:0;cursor:pointer;
+  text-align:left;display:block;margin-bottom:3px;
+  transition:opacity .15s;
+}
+.ev-artist:hover{opacity:.75}
+.ev-name{font-size:.78rem;color:var(--text);margin-bottom:3px}
+.ev-loc{font-size:.72rem;color:var(--text2);margin-bottom:4px}
+.ev-link{font-size:.72rem;color:var(--accent);text-decoration:none}
+.ev-link:hover{text-decoration:underline}
+.drawer-empty{text-align:center;color:var(--text3);padding:48px 16px;font-size:.84rem;line-height:1.8}
+.drawer-empty a{color:var(--accent)}
 </style>
 </head>
 <body>
 
 <div id="zoom"><img id="zoom-img" src="" alt=""></div>
+<div id="drawer-overlay" onclick="closeDrawer()"></div>
+<div id="drawer">
+  <div class="drawer-header">
+    <h2>Artist Events</h2>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div id="drawer-content"></div>
+</div>
 
 <header>
-  <h1>⚔ Pauper Artist Lookup</h1>
-  <p>Find staples by artist · or artists by card</p>
+  <a class="logo" href="#">
+    <div class="logo-mark"><img src="icon.png" alt="Pauper"></div>
+    <span class="logo-text">Pauper</span>
+  </a>
+  <div class="header-right">
+    <button class="btn-events" onclick="openDrawer()">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v4M11 1v4M1 7h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Events
+      <span class="ev-badge" id="evBadge"></span>
+    </button>
+    <a class="btn-admin" href="admin.html" title="Admin panel">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    </a>
+  </div>
 </header>
 
-<div class="top-nav">
-  <button class="on" id="navS" onclick="showSection('search')">🔍 Search</button>
-  <button id="navE" onclick="showSection('events')">📅 Events</button>
-  <a class="admin-lnk" href="admin.html">⚙ Admin</a>
+<div class="hero">
+  <h1>Pauper Artist Lookup</h1>
+  <p>Find every Pauper staple by artist · or every artist by card</p>
+  <div class="search-wrap">
+    <div class="search-field">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input id="inp" type="text" placeholder="Search artists…" autocomplete="off" spellcheck="false">
+      <div class="mode-pills">
+        <button class="on" id="bA" onclick="setMode('artist')">Artist</button>
+        <button id="bC" onclick="setMode('card')">Card</button>
+      </div>
+    </div>
+    <div id="sug"></div>
+  </div>
 </div>
 
-<!-- SEARCH -->
-<div class="section on" id="secSearch">
-  <div class="search-box">
-    <div class="mode-tabs">
-      <button class="on" id="bA" onclick="setMode('artist')">By Artist</button>
-      <button id="bC" onclick="setMode('card')">By Card</button>
-    </div>
-    <div class="wrap">
-      <input id="inp" type="text" placeholder="Type an artist name…" autocomplete="off">
-      <div id="sug"></div>
-    </div>
-  </div>
-  <div id="out"><div class="spinner">Loading database…</div></div>
-</div>
-
-<!-- EVENTS -->
-<div class="section" id="secEvents">
-  <div class="ev-header">
-    <h2>Artist Events</h2>
-    <p>Upcoming signing opportunities · managed from the <a href="admin.html" style="color:var(--accent)">admin panel</a></p>
-  </div>
-  <div id="evContent"></div>
+<div id="results">
+  <div class="empty-state"><div class="icon">⚔</div><p>Search for an artist or card above</p></div>
 </div>
 
 <script>
-// ── DB ────────────────────────────────────────────────────────────────────────
-let DB=null, mode='artist', fidx=-1;
-const inp=document.getElementById('inp'), sug=document.getElementById('sug'), out=document.getElementById('out');
+let DB=null,mode='artist',fidx=-1;
+const inp=document.getElementById('inp'),sug=document.getElementById('sug'),res=document.getElementById('results');
 
 fetch('data.json')
   .then(r=>{if(!r.ok)throw 0;return r.json()})
-  .then(d=>{
-    DB=d;
-    const na=Object.keys(d.by_artist).length, nc=Object.keys(d.by_card).length;
-    out.innerHTML=`<div class="empty">${na} artists · ${nc} cards loaded.<br>Start typing to search.</div>`;
-  })
-  .catch(()=>{out.innerHTML='<div class="empty">⚠ Could not load <code>data.json</code>.</div>'});
+  .then(d=>{DB=d;updateBadge()})
+  .catch(()=>{res.innerHTML='<div class="empty-state"><p>⚠ Could not load data.json</p></div>'});
 
-// ── Sections ──────────────────────────────────────────────────────────────────
-function showSection(s){
-  ['Search','Events'].forEach(x=>{
-    document.getElementById('nav'+x[0]).classList.toggle('on',s===x.toLowerCase());
-    document.getElementById('sec'+x).classList.toggle('on',s===x.toLowerCase());
-  });
-  if(s==='events') renderEvents();
+function setMode(m){
+  mode=m;
+  document.getElementById('bA').classList.toggle('on',m==='artist');
+  document.getElementById('bC').classList.toggle('on',m==='card');
+  inp.placeholder=m==='artist'?'Search artists…':'Search cards…';
+  inp.value='';sug.style.display='none';
+  res.innerHTML=`<div class="empty-state"><div class="icon">⚔</div><p>Search for a${m==='artist'?'n artist':' card'} above</p></div>`;
+  inp.focus();
+}
+function ix(){return DB?(mode==='artist'?DB.by_artist:DB.by_card):{}}
+
+inp.addEventListener('input',()=>{
+  fidx=-1;const q=inp.value.trim();
+  if(!q||!DB){sug.style.display='none';return}
+  const lq=q.toLowerCase(),data=ix();
+  const ms=Object.keys(data)
+    .filter(k=>k.toLowerCase().includes(lq))
+    .sort((a,b)=>a.toLowerCase().indexOf(lq)-b.toLowerCase().indexOf(lq))
+    .slice(0,12);
+  if(!ms.length){sug.style.display='none';return}
+  sug.innerHTML=ms.map(m=>{
+    const n=data[m].length;
+    const cnt=mode==='artist'?`${new Set(data[m].map(x=>x.card_name)).size} cards`:`${n} printings`;
+    return `<div class="sug-item" data-name="${m.replace(/"/g,'&quot;')}"><span>${m}</span><span class="sug-badge">${cnt}</span></div>`;
+  }).join('');
+  sug.querySelectorAll('.sug-item').forEach(el=>el.addEventListener('click',()=>pick(el.dataset.name)));
+  sug.style.display='block';
+});
+
+inp.addEventListener('keydown',e=>{
+  const items=sug.querySelectorAll('.sug-item');if(!items.length)return;
+  if(e.key==='ArrowDown'){fidx=Math.min(fidx+1,items.length-1);hl(items);e.preventDefault()}
+  else if(e.key==='ArrowUp'){fidx=Math.max(fidx-1,0);hl(items);e.preventDefault()}
+  else if(e.key==='Enter'&&fidx>=0){items[fidx]&&pick(items[fidx].dataset.name)}
+  else if(e.key==='Escape')sug.style.display='none';
+});
+function hl(its){its.forEach((el,i)=>el.classList.toggle('hi',i===fidx))}
+document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))sug.style.display='none'});
+
+function pick(name){inp.value=name;sug.style.display='none';render(name)}
+
+function cardEl(name,p,i){
+  const img=p.image?`<img src="${p.image}" alt="${name}" loading="lazy">`:`<div class="no-img">${name}</div>`;
+  const meta=mode==='artist'?p.set_name:`${p.artist} · ${p.set_name}`;
+  return `<a class="card" href="${p.uri||'#'}" target="_blank" rel="noopener" style="animation-delay:${Math.min(i*18,320)}ms">
+    ${img}
+    <div class="card-overlay">
+      <div class="card-name">${name}</div>
+      <div class="card-meta">${meta}</div>
+    </div>
+  </a>`;
 }
 
-// ── Events ────────────────────────────────────────────────────────────────────
-function renderEvents(){
-  const el=document.getElementById('evContent');
+function render(name){
+  const data=ix(),rows=data[name];
+  if(!rows){res.innerHTML=`<div class="empty-state"><p>No results for "${name}"</p></div>`;return}
+  const hdr=mode==='artist'
+    ?`<h2>${name}</h2><span>${new Set(rows.map(r=>r.card_name)).size} staples · ${rows.length} artworks</span>`
+    :`<h2>${name}</h2><span>${rows.length} artworks · ${new Set(rows.map(r=>r.artist)).size} artists</span>`;
+  res.innerHTML=`<div class="result-header">${hdr}</div><div class="grid">${rows.map((r,i)=>cardEl(mode==='artist'?r.card_name:name,r,i)).join('')}</div>`;
+  attachZoom();
+}
+
+// Zoom
+const zoom=document.getElementById('zoom'),zImg=document.getElementById('zoom-img');
+function attachZoom(){
+  document.querySelectorAll('.card img').forEach(img=>{
+    img.addEventListener('mouseenter',()=>{
+      zImg.src=img.src;zoom.style.display='block';
+      const r=img.getBoundingClientRect(),w=280,m=14,h=w*(88/63);
+      let l=r.right+m; if(l+w>window.innerWidth-m) l=r.left-w-m;
+      let t=r.top;     if(t+h>window.innerHeight-m) t=window.innerHeight-h-m;
+      zoom.style.left=Math.max(m,l)+'px';zoom.style.top=Math.max(m,t)+'px';
+    });
+    img.addEventListener('mouseleave',()=>zoom.style.display='none');
+  });
+}
+
+// Drawer
+function openDrawer(){
+  renderDrawer();
+  document.getElementById('drawer').classList.add('on');
+  document.getElementById('drawer-overlay').classList.add('on');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('drawer-overlay').classList.remove('on');
+}
+function renderDrawer(){
+  const el=document.getElementById('drawer-content');
   const evs=JSON.parse(localStorage.getItem('pauper_events')||'[]');
   if(!evs.length){
-    el.innerHTML='<div class="no-events">No events yet.<br>Add them from the <a href="admin.html" style="color:var(--accent)">admin panel</a>.</div>';
+    el.innerHTML='<div class="drawer-empty">No events yet.<br>Add them from the <a href="admin.html">admin panel</a>.</div>';
     return;
   }
   const today=new Date().toISOString().slice(0,10);
@@ -208,106 +374,26 @@ function renderEvents(){
   const past=evs.filter(e=>e.date<today).sort((a,b)=>b.date.localeCompare(a.date));
   const row=(ev,cls='')=>{
     const d=new Date(ev.date+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-    return `<div class="ev-card ${cls}">
-      <div>
-        <h3><button onclick="searchArtist(${JSON.stringify(ev.artist)})">${ev.artist}</button></h3>
-        <p>🎪 ${ev.eventName} · 📍 ${ev.location}</p>
-        ${ev.website?`<a href="${ev.website}" target="_blank" rel="noopener">🔗 Website</a>`:''}
-      </div>
+    return `<div class="ev-item ${cls}">
       <div class="ev-date">${d}</div>
+      <button class="ev-artist" onclick="searchFromDrawer(${JSON.stringify(ev.artist)})">${ev.artist}</button>
+      <div class="ev-name">${ev.eventName}</div>
+      <div class="ev-loc">📍 ${ev.location}</div>
+      ${ev.website?`<a class="ev-link" href="${ev.website}" target="_blank" rel="noopener">🔗 Website</a>`:''}
     </div>`;
   };
   let html='';
-  if(up.length)   html+=`<div class="ev-group-label">Upcoming (${up.length})</div>`+up.map(e=>row(e)).join('');
-  if(past.length) html+=`<div class="ev-group-label">Past (${past.length})</div>`+past.map(e=>row(e,'past')).join('');
+  if(up.length)   html+=`<div class="ev-group">Upcoming · ${up.length}</div>`+up.map(e=>row(e)).join('');
+  if(past.length) html+=`<div class="ev-group">Past · ${past.length}</div>`+past.map(e=>row(e,'past')).join('');
   el.innerHTML=html;
 }
-
-function searchArtist(name){
-  showSection('search');
-  setMode('artist');
-  inp.value=name;
-  pick(name);
+function searchFromDrawer(artist){closeDrawer();setMode('artist');inp.value=artist;pick(artist)}
+function updateBadge(){
+  const evs=JSON.parse(localStorage.getItem('pauper_events')||'[]');
+  const n=evs.filter(e=>e.date>=new Date().toISOString().slice(0,10)).length;
+  const b=document.getElementById('evBadge');
+  b.style.display=n?'inline':'none';b.textContent=n;
 }
-
-// ── Search ────────────────────────────────────────────────────────────────────
-function setMode(m){
-  mode=m;
-  document.getElementById('bA').classList.toggle('on',m==='artist');
-  document.getElementById('bC').classList.toggle('on',m==='card');
-  inp.placeholder=m==='artist'?'Type an artist name…':'Type a card name…';
-  inp.value=''; sug.style.display='none';
-  out.innerHTML='<div class="empty">Start typing to search.</div>';
-}
-function ix(){return DB?(mode==='artist'?DB.by_artist:DB.by_card):{}}
-
-inp.addEventListener('input',()=>{
-  fidx=-1; const q=inp.value.trim();
-  if(!q||!DB){sug.style.display='none';return}
-  const lq=q.toLowerCase(), data=ix();
-  const matches=Object.keys(data)
-    .filter(k=>k.toLowerCase().includes(lq))
-    .sort((a,b)=>a.toLowerCase().indexOf(lq)-b.toLowerCase().indexOf(lq))
-    .slice(0,14);
-  if(!matches.length){sug.style.display='none';return}
-  sug.innerHTML=matches.map(m=>{
-    const n=data[m].length;
-    const label=mode==='artist'?`${new Set(data[m].map(x=>x.card_name)).size} cards`:`${n} printing${n!==1?'s':''}`;
-    return `<div class="sug-item" data-name="${m.replace(/"/g,'&quot;')}">${m}<span>${label}</span></div>`;
-  }).join('');
-  sug.querySelectorAll('.sug-item').forEach(el=>el.addEventListener('click',()=>pick(el.dataset.name)));
-  sug.style.display='block';
-});
-
-inp.addEventListener('keydown',e=>{
-  const items=sug.querySelectorAll('.sug-item');
-  if(!items.length)return;
-  if(e.key==='ArrowDown'){fidx=Math.min(fidx+1,items.length-1);hl(items);e.preventDefault()}
-  else if(e.key==='ArrowUp'){fidx=Math.max(fidx-1,0);hl(items);e.preventDefault()}
-  else if(e.key==='Enter'&&fidx>=0){items[fidx]&&pick(items[fidx].dataset.name)}
-  else if(e.key==='Escape')sug.style.display='none';
-});
-function hl(items){items.forEach((el,i)=>el.classList.toggle('hi',i===fidx))}
-document.addEventListener('click',e=>{if(!e.target.closest('.wrap'))sug.style.display='none'});
-
-function pick(name){inp.value=name;sug.style.display='none';render(name)}
-
-function cardEl(name,p){
-  const img=p.image
-    ?`<img src="${p.image}" alt="${name}" loading="lazy" data-zoom="${p.image}">`
-    :`<div class="no-img">${name}</div>`;
-  const meta=mode==='artist'?p.set_name:`${p.artist} · ${p.set_name}`;
-  return `<a class="card" href="${p.uri||'#'}" target="_blank" rel="noopener">${img}<div class="info"><div class="cname">${name}</div><div class="cmeta">${meta}</div></div></a>`;
-}
-
-function render(name){
-  const data=ix(), rows=data[name];
-  if(!rows){out.innerHTML='<div class="empty">No results found.</div>';return}
-  if(mode==='artist'){
-    const u=new Set(rows.map(r=>r.card_name)).size;
-    out.innerHTML=`<div class="result-header"><h2>${name}</h2><p>${u} unique staple${u!==1?'s':''} · ${rows.length} artwork${rows.length!==1?'s':''}</p></div><div class="grid">${rows.map(r=>cardEl(r.card_name,r)).join('')}</div>`;
-  } else {
-    const a=new Set(rows.map(r=>r.artist)).size;
-    out.innerHTML=`<div class="result-header"><h2>${name}</h2><p>${rows.length} artwork${rows.length!==1?'s':''} by ${a} artist${a!==1?'s':''}</p></div><div class="grid">${rows.map(r=>cardEl(name,r)).join('')}</div>`;
-  }
-}
-
-// ── Hover zoom ────────────────────────────────────────────────────────────────
-const zoom=document.getElementById('zoom'), zImg=document.getElementById('zoom-img');
-out.addEventListener('mouseover',e=>{
-  const t=e.target.closest('[data-zoom]');
-  if(!t)return;
-  zImg.src=t.dataset.zoom;
-  zoom.style.display='block';
-  const r=t.getBoundingClientRect(), w=265, m=12, h=w*(88/63);
-  let left=r.right+m;
-  if(left+w>window.innerWidth-m) left=r.left-w-m;
-  let top=r.top;
-  if(top+h>window.innerHeight-m) top=window.innerHeight-h-m;
-  zoom.style.left=Math.max(m,left)+'px';
-  zoom.style.top=Math.max(m,top)+'px';
-});
-out.addEventListener('mouseleave',()=>zoom.style.display='none');
 </script>
 </body>
 </html>
