@@ -231,7 +231,7 @@ header{
 <header>
   <a class="logo" href="#">
     <div class="logo-mark"><img src="icon.png" alt="Pauper"></div>
-    <span class="logo-text">Pauper</span>
+    <span class="logo-text">Pauper Artist Lookup</span>
   </a>
   <div class="header-right">
     <button class="btn-events" onclick="openDrawer()">
@@ -374,9 +374,11 @@ function renderDrawer(){
   const past=evs.filter(e=>e.date<today).sort((a,b)=>b.date.localeCompare(a.date));
   const row=(ev,cls='')=>{
     const d=new Date(ev.date+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    const artists=ev.artists||(ev.artist?[ev.artist]:[]);
+    const artistBtns=artists.map(a=>`<button class="ev-artist" onclick="searchFromDrawer(${JSON.stringify(a)})">${a}</button>`).join('');
     return `<div class="ev-item ${cls}">
       <div class="ev-date">${d}</div>
-      <button class="ev-artist" onclick="searchFromDrawer(${JSON.stringify(ev.artist)})">${ev.artist}</button>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px">${artistBtns}</div>
       <div class="ev-name">${ev.eventName}</div>
       <div class="ev-loc">📍 ${ev.location}</div>
       ${ev.website?`<a class="ev-link" href="${ev.website}" target="_blank" rel="noopener">🔗 Website</a>`:''}
