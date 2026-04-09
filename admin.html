@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pauper Artist — Admin</title>
+<style>
+:root{
+  --bg:#12121f;--surface:#1c1c30;--card-bg:#252540;
+  --accent:#e05555;--gold:#c8a84b;
+  --text:#e8e8f0;--dim:#7878a0;--border:#2e2e50;--green:#4caf50;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+header{text-align:center;padding:24px 20px 16px}
+header h1{font-size:1.5rem;color:var(--gold)}
+header p{color:var(--dim);font-size:.8rem;margin-top:4px}
+header a{color:var(--accent)}
+
+.top-nav{display:flex;justify-content:center;gap:8px;padding:0 20px 24px}
+.top-nav button{
+  padding:7px 28px;border-radius:999px;border:1px solid var(--border);
+  background:transparent;color:var(--dim);cursor:pointer;font-size:.88rem;transition:all .15s
+}
+.top-nav button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.section{display:none;max-width:800px;margin:0 auto;padding:0 16px 48px}
+.section.on{display:block}
+
+/* form card */
+.fcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:24px}
+.fcard h2{font-size:.95rem;color:var(--gold);margin-bottom:16px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fgrid .full{grid-column:1/-1}
+@media(max-width:500px){.fgrid{grid-template-columns:1fr}}
+label{display:block;font-size:.73rem;color:var(--dim);margin-bottom:4px}
+input[type=text],input[type=date],input[type=url]{
+  width:100%;padding:9px 12px;background:var(--card-bg);border:1px solid var(--border);
+  border-radius:6px;color:var(--text);font-size:.88rem;outline:none
+}
+input:focus{border-color:var(--accent)}
+.factions{display:flex;gap:8px;margin-top:14px}
+.btn{padding:8px 18px;border-radius:6px;border:none;cursor:pointer;font-size:.84rem;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn-p{background:var(--accent);color:#fff}
+.btn-s{background:var(--card-bg);color:var(--text);border:1px solid var(--border)}
+.btn-d{background:transparent;color:var(--accent);border:1px solid var(--border);font-size:.76rem;padding:5px 11px}
+
+/* events list */
+.ev-list{display:flex;flex-direction:column;gap:9px}
+.ev-row{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:13px 15px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px
+}
+.ev-row.past{opacity:.45}
+.ev-row h3{font-size:.9rem;margin-bottom:3px}
+.ev-row p{font-size:.76rem;color:var(--dim);margin:2px 0}
+.ev-row a{color:var(--accent);font-size:.76rem}
+.ev-actions{display:flex;gap:6px;flex-shrink:0}
+.ev-date{font-size:.72rem;color:var(--gold);white-space:nowrap}
+.empty-s{text-align:center;color:var(--dim);padding:36px;font-size:.88rem}
+
+/* log */
+.log-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:20px}
+.log-card h2{font-size:.95rem;color:var(--gold);margin-bottom:6px}
+.log-meta{font-size:.76rem;color:var(--dim);margin-bottom:16px}
+.log-stat{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:.84rem}
+.log-stat:last-of-type{border-bottom:none}
+.log-stat span{color:var(--gold)}
+.new-cards{margin-top:14px}
+.new-cards h3{font-size:.78rem;color:var(--dim);margin-bottom:8px}
+.tag{
+  display:inline-block;margin:3px;padding:3px 10px;
+  background:var(--card-bg);border:1px solid var(--border);border-radius:999px;font-size:.76rem
+}
+.tag.new{border-color:var(--green);color:var(--green)}
+.instructions{
+  background:var(--card-bg);border-radius:8px;padding:16px;
+  font-size:.81rem;color:var(--dim);line-height:1.75
+}
+.instructions code{color:var(--gold);background:var(--surface);padding:2px 6px;border-radius:4px}
+.instructions strong{color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚙ Admin Panel</h1>
+  <p><a href="index.html">← Back to lookup app</a></p>
+</header>
+
+<div class="top-nav">
+  <button class="on" id="navEv" onclick="showTab('ev')">📅 Events</button>
+  <button id="navDb" onclick="showTab('db')">🗄 Database</button>
+</div>
+
+<!-- EVENTS -->
+<div class="section on" id="secEv">
+  <div class="fcard">
+    <h2 id="formTitle">Add New Event</h2>
+    <div class="fgrid">
+      <div><label>Artist Name *</label><input type="text" id="fArtist" placeholder="e.g. Rebecca Guay"></div>
+      <div><label>Event Name *</label><input type="text" id="fEvent" placeholder="e.g. GP Bologna 2025"></div>
+      <div><label>Location *</label><input type="text" id="fLoc" placeholder="e.g. Bologna, Italy"></div>
+      <div><label>Date *</label><input type="date" id="fDate"></div>
+      <div class="full"><label>Website</label><input type="url" id="fWeb" placeholder="https://…"></div>
+    </div>
+    <div class="factions">
+      <button class="btn btn-p" onclick="saveEvent()">Save Event</button>
+      <button class="btn btn-s" id="cancelBtn" style="display:none" onclick="cancelEdit()">Cancel</button>
+    </div>
+  </div>
+  <div class="ev-list" id="evList"></div>
+</div>
+
+<!-- DATABASE -->
+<div class="section" id="secDb">
+  <div class="log-card">
+    <h2>Last Scrape Log</h2>
+    <div class="log-meta" id="logMeta">—</div>
+    <div id="logContent"><p style="color:var(--dim);font-size:.84rem">No log yet. Run the scraper first.</p></div>
+    <button class="btn btn-s" style="margin-top:14px" onclick="loadLog()">↻ Refresh Log</button>
+  </div>
+  <div class="instructions">
+    <strong>How to update the card database:</strong><br><br>
+    Full update (scrape + fetch new cards from Scryfall):<br>
+    <code>python scrape_mtggoldfish.py</code><br><br>
+    Preview without modifying any file:<br>
+    <code>python scrape_mtggoldfish.py --dry-run</code><br><br>
+    After running, click <strong>↻ Refresh Log</strong> above to see results.
+  </div>
+</div>
+
+<script>
+const KEY='pauper_events';
+let events=JSON.parse(localStorage.getItem(KEY)||'[]'), editId=null;
+
+function showTab(t){
+  document.getElementById('navEv').classList.toggle('on',t==='ev');
+  document.getElementById('navDb').classList.toggle('on',t==='db');
+  document.getElementById('secEv').classList.toggle('on',t==='ev');
+  document.getElementById('secDb').classList.toggle('on',t==='db');
+  if(t==='db') loadLog();
+}
+
+function save(){localStorage.setItem(KEY,JSON.stringify(events))}
+
+function render(){
+  const el=document.getElementById('evList');
+  if(!events.length){el.innerHTML='<div class="empty-s">No events yet.</div>';return}
+  const today=new Date().toISOString().slice(0,10);
+  const sorted=[...events].sort((a,b)=>a.date.localeCompare(b.date));
+  el.innerHTML=sorted.map(ev=>{
+    const past=ev.date<today;
+    const d=new Date(ev.date+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    return `<div class="ev-row ${past?'past':''}">
+      <div>
+        <h3>${ev.artist} <span style="font-size:.7rem;color:var(--dim)">${past?'past':'upcoming'}</span></h3>
+        <p>🎪 ${ev.eventName} · 📍 ${ev.location}</p>
+        <p class="ev-date">📅 ${d}</p>
+        ${ev.website?`<a href="${ev.website}" target="_blank" rel="noopener">🔗 Website</a>`:''}
+      </div>
+      <div class="ev-actions">
+        <button class="btn btn-s" style="font-size:.76rem;padding:5px 11px" onclick="editEvent('${ev.id}')">Edit</button>
+        <button class="btn btn-d" onclick="delEvent('${ev.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveEvent(){
+  const artist=document.getElementById('fArtist').value.trim();
+  const eventName=document.getElementById('fEvent').value.trim();
+  const loc=document.getElementById('fLoc').value.trim();
+  const date=document.getElementById('fDate').value;
+  const web=document.getElementById('fWeb').value.trim();
+  if(!artist||!eventName||!loc||!date){alert('Please fill in all required fields.');return}
+  if(editId){
+    const i=events.findIndex(e=>e.id===editId);
+    if(i>=0) events[i]={id:editId,artist,eventName,location:loc,date,website:web};
+    editId=null;
+  } else {
+    events.push({id:Date.now().toString(),artist,eventName,location:loc,date,website:web});
+  }
+  save(); render(); clearForm();
+}
+
+function editEvent(id){
+  const ev=events.find(e=>e.id===id); if(!ev)return;
+  editId=id;
+  document.getElementById('fArtist').value=ev.artist;
+  document.getElementById('fEvent').value=ev.eventName;
+  document.getElementById('fLoc').value=ev.location;
+  document.getElementById('fDate').value=ev.date;
+  document.getElementById('fWeb').value=ev.website||'';
+  document.getElementById('formTitle').textContent='Edit Event';
+  document.getElementById('cancelBtn').style.display='inline-block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function delEvent(id){
+  if(!confirm('Delete this event?'))return;
+  events=events.filter(e=>e.id!==id);
+  save(); render();
+}
+
+function cancelEdit(){editId=null;clearForm()}
+function clearForm(){
+  ['fArtist','fEvent','fLoc','fDate','fWeb'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('formTitle').textContent='Add New Event';
+  document.getElementById('cancelBtn').style.display='none';
+}
+
+async function loadLog(){
+  try{
+    const r=await fetch('scrape_log.json?t='+Date.now());
+    if(!r.ok)throw 0;
+    const log=await r.json();
+    document.getElementById('logMeta').textContent=
+      `Last run: ${log.timestamp}${log.dry_run?' (dry run)':''}`;
+    const nc=log.new_cards||[];
+    document.getElementById('logContent').innerHTML=`
+      <div class="log-stat">Cards scraped from MTGGoldfish <span>${log.total_scraped}</span></div>
+      <div class="log-stat">Already in allcards.txt <span>${log.already_known}</span></div>
+      <div class="log-stat">New cards added <span style="color:${nc.length?'var(--green)':'var(--dim)'}">${nc.length}</span></div>
+      <div class="log-stat">Total cards in list <span>${log.total_after}</span></div>
+      ${nc.length?`<div class="new-cards"><h3>New cards:</h3>${nc.map(c=>`<span class="tag new">+ ${c}</span>`).join('')}</div>`:''}
+    `;
+  }catch{
+    document.getElementById('logMeta').textContent='—';
+    document.getElementById('logContent').innerHTML='<p style="color:var(--dim);font-size:.84rem">No log found. Run the scraper first.</p>';
+  }
+}
+
+render();
+</script>
+</body>
+</html>
